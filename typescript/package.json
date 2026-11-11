@@ -1,0 +1,54 @@
+{
+  "name": "@whatsarab/sdk",
+  "version": "0.7.0",
+  "description": "Official TypeScript client for the WhatsArab API — send WhatsApp messages from any of your numbers, upload media, manage templates, send and verify OTPs, read events, and verify signed webhooks.",
+  "license": "MIT",
+  "author": "WhatsArab",
+  "homepage": "https://whatsarab.com/docs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WhatsArabHQ/whatsarab-sdk.git",
+    "directory": "typescript"
+  },
+  "bugs": {
+    "url": "https://whatsarab.com/support"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsapp-business-api",
+    "meta-cloud-api",
+    "messaging",
+    "otp",
+    "mena",
+    "arabic"
+  ],
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit && tsc -p test/tsconfig.json",
+    "test": "node --test test/*.test.js",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
