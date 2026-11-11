@@ -45,12 +45,20 @@ jobs:
 
   python:
     name: Python ${{ matrix.python }}
-    runs-on: ubuntu-latest
+    # ubuntu-latest is Ubuntu 26.04, which has no Python 3.9 build for
+    # setup-python (actions/python-versions ships 3.9 for 22.04 and 24.04 only).
+    # The package still supports 3.9 (pyproject requires-python >=3.9), so that
+    # leg runs on 24.04; the newest version stays on the latest image.
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.9', '3.13']
+        include:
+          - python: '3.9'
+            os: ubuntu-24.04
+          - python: '3.13'
+            os: ubuntu-latest
     defaults:
       run:
         working-directory: python
