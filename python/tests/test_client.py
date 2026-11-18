@@ -89,6 +89,45 @@ def test_error_envelope_becomes_whatsaraberror():
     assert "24-hour" in str(err)
 
 
+def test_plan_required_keeps_extra_fields_on_details():
+    def handler(request):
+        return httpx.Response(
+            402,
+            json={
+                "success": False,
+                "error": {
+                    "code": "PLAN_REQUIRED",
+                    "message": "This workspace is stopped.",
+                    "reason": "free_period_ended",
+                    "ended_at": "2027-01-15T00:00:00.000Z",
+                    "manage_url": "https://example.test/app/billing",
+                },
+            },
+        )
+
+    client = make_client(handler)
+    with pytest.raises(WhatsArabError) as excinfo:
+        client.messages.send(to="201234567890", text="hi")
+
+    err = excinfo.value
+    assert err.code == "PLAN_REQUIRED"
+    assert err.status == 402
+    assert err.details == {
+        "reason": "free_period_ended",
+        "ended_at": "2027-01-15T00:00:00.000Z",
+        "manage_url": "https://example.test/app/billing",
+    }
+
+
+def test_error_without_extra_fields_has_empty_details():
+    client = make_client(
+        lambda r: httpx.Response(400, json={"success": False, "error": {"code": "OUTSIDE_CSW", "message": "x"}})
+    )
+    with pytest.raises(WhatsArabError) as excinfo:
+        client.messages.send(to="201234567890", text="hi")
+    assert excinfo.value.details == {}
+
+
 def test_200_with_success_false_is_still_a_failure():
     # The envelope is the authority, not the status line. A client that trusted
     # the status would return None here and call it a send.

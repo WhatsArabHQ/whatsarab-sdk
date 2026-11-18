@@ -99,6 +99,52 @@ test('turns an error envelope into WhatsArabError carrying the platform code', a
   );
 });
 
+test('PLAN_REQUIRED keeps the error\'s extra fields on details', async () => {
+  const { impl } = stubFetch(() =>
+    jsonResponse(
+      {
+        success: false,
+        error: {
+          code: 'PLAN_REQUIRED',
+          message: 'This workspace is stopped.',
+          reason: 'free_period_ended',
+          ended_at: '2027-01-15T00:00:00.000Z',
+          manage_url: 'https://example.test/app/billing',
+        },
+      },
+      402,
+    ),
+  );
+  const wa = new WhatsArab({ apiKey: 'k', fetch: impl });
+
+  await assert.rejects(
+    () => wa.messages.send({ to: '201234567890', text: 'hi' }),
+    (err) => {
+      assert.ok(err instanceof WhatsArabError);
+      assert.equal(err.code, 'PLAN_REQUIRED');
+      assert.equal(err.status, 402);
+      assert.deepEqual(err.details, {
+        reason: 'free_period_ended',
+        ended_at: '2027-01-15T00:00:00.000Z',
+        manage_url: 'https://example.test/app/billing',
+      });
+      return true;
+    },
+  );
+});
+
+test('an error with no extra fields has empty details', async () => {
+  const { impl } = stubFetch(() => jsonResponse({ success: false, error: { code: 'OUTSIDE_CSW', message: 'x' } }, 400));
+  const wa = new WhatsArab({ apiKey: 'k', fetch: impl });
+  await assert.rejects(
+    () => wa.messages.send({ to: '201234567890', text: 'hi' }),
+    (err) => {
+      assert.deepEqual(err.details, {});
+      return true;
+    },
+  );
+});
+
 test('a 200 with success:false is still a failure', async () => {
   // The platform envelope is the authority, not the HTTP status — an SDK that
   // trusted res.ok would hand the caller `undefined` and call it a send.

@@ -231,6 +231,10 @@ except WhatsArabError as err:
         # Meta never answered: the message may have gone out. Never resend
         # automatically — check the message.sent webhook / GET /api/events first.
         check_status_before_resending()
+    elif err.code == "PLAN_REQUIRED":
+        # The workspace is stopped (free period or subscription ended, no plan).
+        # err.details has reason, ended_at and manage_url — where the owner subscribes.
+        ask_owner_to_subscribe(err.details.get("manage_url"))
     elif err.code in ("TIMEOUT", "NETWORK_ERROR"):
         retry_later()
     else:
@@ -283,6 +287,8 @@ with WhatsArab(api_key="…") as wa:
 ```
 
 ## Changelog
+
+**0.7.1** — `WhatsArabError.details`: the error's other fields, e.g. `reason`, `ended_at` and `manage_url` on `PLAN_REQUIRED` (402, a stopped workspace). `me()` documents `workspace["state"]` (`active` / `stopped`) and what a stopped answer carries. Docs: service kinds are not free — they don't count against your WhatsArab quota, and Meta bills them after the first 1,000 per number per month; one-time-code ranges corrected (`code_length` 4–8, `ttl_seconds` 60–5400, `max_attempts` 1–10, clamped by the server). Nothing else changes.
 
 **0.7.0** — For integrations that connect and poll: `me()` (who the key is — workspace, scope, number list, and the plan's webhook slots; the connection test), `contacts.list()` (newest first, cursor pages, `since=`), `tags.list()` (every tag in use, most used first) and `webhooks.samples(event)` (up to 3 recent real events in the delivery envelope, for trigger set-up). `me()`, `contacts.list()` and `tags.list()` take a `read` or `send` key; `webhooks.samples()` a `full` key. Nothing else changes.
 

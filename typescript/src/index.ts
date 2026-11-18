@@ -50,6 +50,9 @@ export class WhatsArabError extends Error {
   readonly code: string;
   readonly requestId?: string;
   readonly metaError?: unknown;
+  /** The error's other fields, when the server sends any — e.g. `PLAN_REQUIRED`
+   *  carries `reason`, `ended_at` and `manage_url`. Empty object otherwise. */
+  readonly details: Record<string, unknown>;
 
   constructor(opts: {
     status: number;
@@ -57,6 +60,7 @@ export class WhatsArabError extends Error {
     message: string;
     requestId?: string;
     metaError?: unknown;
+    details?: Record<string, unknown>;
   }) {
     super(opts.message);
     this.name = 'WhatsArabError';
@@ -64,6 +68,7 @@ export class WhatsArabError extends Error {
     this.code = opts.code;
     this.requestId = opts.requestId;
     this.metaError = opts.metaError;
+    this.details = opts.details ?? {};
   }
 }
 
@@ -71,7 +76,14 @@ interface ApiEnvelope<T> {
   success: boolean;
   data?: T;
   request_id?: string;
-  error?: { code?: string; message?: string; meta_error?: unknown };
+  error?: { code?: string; message?: string; meta_error?: unknown; [field: string]: unknown };
+}
+
+/** An error object's fields beyond code / message / meta_error. */
+function errorDetails(error: ApiEnvelope<unknown>['error']): Record<string, unknown> {
+  if (!error || typeof error !== 'object') return {};
+  const { code: _code, message: _message, meta_error: _meta, ...rest } = error;
+  return rest;
 }
 
 // ── Numbers ──────────────────────────────────────────────────────────
@@ -499,7 +511,21 @@ export interface TagCount {
 
 /** Who the API key is — `me()`. */
 export interface Me {
-  workspace: { id: string; name: string };
+  /**
+   * `state: 'stopped'` — the free period or the subscription has ended and
+   * there is no plan. Then the answer carries only `workspace` (`id`, `state`,
+   * `reason`, `ended_at`, `manage_url`) and `plan`: no `name`, `key` or
+   * `webhooks`. Every other call answers `PLAN_REQUIRED` (402) until the
+   * workspace subscribes.
+   */
+  workspace: {
+    id: string;
+    name: string;
+    state?: 'active' | 'stopped';
+    reason?: 'free_period_ended' | 'subscription_ended';
+    ended_at?: string | null;
+    manage_url?: string;
+  };
   plan: { slug: string; name: string } | null;
   /** Null only for a dashboard session (never for an API key). */
   key: { prefix: string; name: string; scope: 'read' | 'send' | 'full'; number_ids: string[] | null } | null;
@@ -657,6 +683,7 @@ export class WhatsArab {
         message: envelope?.error?.message || res.statusText || 'Request failed',
         requestId: envelope?.request_id,
         metaError: envelope?.error?.meta_error,
+        details: errorDetails(envelope?.error),
       });
     }
     // A paged list carries its cursor beside `data`, so it needs the envelope.
@@ -671,6 +698,8 @@ export class WhatsArab {
       code: envelope?.error?.code || `HTTP_${res.status}`,
       message: envelope?.error?.message || res.statusText || 'Request failed',
       requestId: envelope?.request_id,
+      metaError: envelope?.error?.meta_error,
+      details: errorDetails(envelope?.error),
     });
   }
 }

@@ -34,12 +34,16 @@ class WhatsArabError(Exception):
         code: str,
         request_id: Optional[str] = None,
         meta_error: Any = None,
+        details: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(message)
         self.status = status
         self.code = code
         self.request_id = request_id
         self.meta_error = meta_error
+        #: The error's other fields, when the server sends any — e.g.
+        #: ``PLAN_REQUIRED`` carries ``reason``, ``ended_at`` and ``manage_url``.
+        self.details: Dict[str, Any] = dict(details or {})
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
         return f"WhatsArabError(code={self.code!r}, status={self.status}, message={str(self)!r})"
@@ -93,7 +97,13 @@ class WhatsArab:
         scope, number_ids) and ``webhooks`` (``used`` / ``limit``; a ``None``
         limit is unlimited). Use it as an integration's connection test — it
         says before a trigger fails that it needs a ``full`` key or a free
-        webhook slot."""
+        webhook slot.
+
+        ``workspace["state"]`` is ``"active"`` or ``"stopped"`` (the free
+        period or the subscription has ended, no plan). A stopped answer
+        carries only ``workspace`` (``id``, ``state``, ``reason``,
+        ``ended_at``, ``manage_url``) and ``plan``; every other call raises
+        ``PLAN_REQUIRED`` (402) until the workspace subscribes."""
         return self.request("GET", "/api/me")
 
     # ── plumbing ────────────────────────────────────────────────────
@@ -159,6 +169,7 @@ class WhatsArab:
             code=error.get("code") or f"HTTP_{response.status_code}",
             request_id=envelope.get("request_id") if isinstance(envelope, dict) else None,
             meta_error=error.get("meta_error"),
+            details={k: v for k, v in error.items() if k not in ("code", "message", "meta_error")},
         )
 
     def close(self) -> None:
