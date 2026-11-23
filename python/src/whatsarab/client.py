@@ -230,12 +230,15 @@ class _Messages:
         can, so it is checked here — a local ValueError beats a round trip that
         comes back 400.
 
-        ``text``, ``interactive`` and ``media`` don't count against your
-        WhatsArab quota; Meta bills them to your WhatsApp Business Account (the
-        first 1,000 service messages per business phone number per month are
-        free, then the market's utility rate). They are deliverable only inside
-        the recipient's 24-hour customer-service window; outside it the call
-        fails with ``OUTSIDE_CSW``.
+        Templates always count toward your WhatsArab monthly business
+        messages. ``text``, ``interactive`` and ``media`` don't count toward
+        them until December 31, 2026; from January 1, 2027 they count like
+        every automated message (only replies your team types in the inbox
+        stay outside the quota). Separately, Meta charges them to your
+        WhatsApp Business Account at the market's utility rate after the first
+        1,000 service messages per business phone number per month. They are
+        deliverable only inside the recipient's 24-hour customer-service
+        window; outside it the call fails with ``OUTSIDE_CSW``.
 
         Address the customer with exactly one of ``to`` (their phone) or
         ``recipient`` (their WhatsApp user id — the ``fromUserId`` of a

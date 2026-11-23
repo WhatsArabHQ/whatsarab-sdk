@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "whatsarab"
-version = "0.7.1"
+version = "0.7.2"
 description = "Official Python client for the WhatsArab API — WhatsApp messages from any of your numbers, media, templates, OTP, events, and signed webhooks on the official Meta Cloud API."
 readme = "README.md"
 license = { text = "MIT" }

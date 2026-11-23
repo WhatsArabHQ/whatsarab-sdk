@@ -741,12 +741,15 @@ class MessagesResource {
    * Send one message. Returns 202 with the wamid — accepted by Meta, not yet
    * delivered; delivery arrives on the webhook bus.
    *
-   * `text`, `interactive` and `media` don't count against your WhatsArab
-   * quota; Meta bills them to your WhatsApp Business Account (the
-   * first 1,000 service messages per business phone number per month are free,
-   * then the market's utility rate). They are only deliverable inside the recipient's
-   * 24-hour customer-service window; outside it the call fails with
-   * `OUTSIDE_CSW` and you must send an approved `template`.
+   * Templates always count toward your WhatsArab monthly business messages.
+   * `text`, `interactive` and `media` don't count toward them until
+   * December 31, 2026; from January 1, 2027 they count like every automated
+   * message (only replies your team types in the inbox stay outside the
+   * quota). Separately, Meta charges them to your WhatsApp Business Account
+   * at the market's utility rate after the first 1,000 service messages per
+   * business phone number per month. They are only deliverable inside the
+   * recipient's 24-hour customer-service window; outside it the call fails
+   * with `OUTSIDE_CSW` and you must send an approved `template`.
    */
   async send(input: SendMessageInput): Promise<SendMessageResult> {
     return this.client.request<SendMessageResult>('POST', '/api/messages', { json: withFromPrecedence(input) });

@@ -1,6 +1,6 @@
 {
   "name": "@whatsarab/sdk",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Official TypeScript client for the WhatsArab API — send WhatsApp messages from any of your numbers, upload media, manage templates, send and verify OTPs, read events, and verify signed webhooks.",
   "license": "MIT",
   "author": "WhatsArab",

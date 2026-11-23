@@ -86,7 +86,7 @@ await wa.messages.send({ to: '201234567890', template: 'order_shipped', dry_run:
 await wa.messages.send({ recipient: 'EG.13491208655302741918', text: 'أهلًا! تحت أمرك.' });
 ```
 
-Templates always count toward your WhatsArab monthly business messages. `text`, `interactive` and `media` don't count toward them until December 31, 2026; from January 1, 2027 they count like every automated message (only replies your team types in the inbox stay outside the quota). Separately, Meta bills them to your WhatsApp Business Account: the first 1,000 service messages per business phone number per month are free, then the market's utility rate. They are only deliverable inside the recipient's 24-hour customer-service window. Outside it the call fails with `OUTSIDE_CSW` and you need an approved template.
+Templates always count toward your WhatsArab monthly business messages. `text`, `interactive` and `media` don't count toward them until December 31, 2026; from January 1, 2027 they count like every automated message (only replies your team types in the inbox stay outside the quota). Separately, Meta charges them to your WhatsApp Business Account at the market's utility rate after the first 1,000 service messages per business phone number per month. They are only deliverable inside the recipient's 24-hour customer-service window. Outside it the call fails with `OUTSIDE_CSW` and you need an approved template.
 
 The response is a `202`: Meta accepted the message. Delivery arrives later on the webhook bus, matched by `message_id` (the wamid). It also says which of your numbers sent: `from` is `{ number_id, phone_number_id, display_number }`.
 
@@ -283,6 +283,8 @@ new WhatsArab({
 ```
 
 ## Changelog
+
+**0.7.2** — Documentation only, no code change. `messages.send()` and this README state the quota rule from January 1, 2027: `text`, `interactive` and `media` count toward your monthly business messages like every automated message (until December 31, 2026 they don't). Meta's charge reads in the right order: the market's utility rate after the first 1,000 service messages per business phone number per month.
 
 **0.7.1** — `WhatsArabError.details`: the error's other fields, e.g. `reason`, `ended_at` and `manage_url` on `PLAN_REQUIRED` (402, a stopped workspace). `me()` types `workspace.state` (`active` / `stopped`) and what a stopped answer carries. Docs: service kinds are not free — they don't count against your WhatsArab quota, and Meta bills them after the first 1,000 per number per month; one-time-code ranges corrected (`code_length` 4–8, `ttl_seconds` 60–5400, `max_attempts` 1–10, clamped by the server). Nothing else changes.
 
